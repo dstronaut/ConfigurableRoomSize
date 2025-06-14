@@ -10,7 +10,7 @@ Just edit the `ConfigurableRoomSize.json` file in the ModConfig folder.
 
 ```[json]
 {
-  "MaxRoomSize": 16,
+  "MaxRoomSize": 24,
   "MaxCellarSize": 7,
   "AltMaxCellarSize": 9,
   "AltMaxCellarVolume": 150
@@ -19,3 +19,7 @@ Just edit the `ConfigurableRoomSize.json` file in the ModConfig folder.
 ```
 
 That's all!
+
+
+### Note:
+- If using mods like "Status Hud Continued" client have to have the same config as the server to properly display the room icon.
