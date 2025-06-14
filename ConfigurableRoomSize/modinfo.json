@@ -1,0 +1,14 @@
+{
+    "type": "code",
+    "modid": "configurableroomsize",
+    "name": "Configurable Room Size",
+    "authors": [
+        "dstronaut"
+    ],
+    "description": "This mod allows you to configure the max size of rooms in the game.",
+    "version": "1.0.0",
+    "dependencies": {
+        "game": "",
+        "essentials": ""
+    }
+}
