@@ -22,3 +22,7 @@ That's all!
 ### Note:
 
 - If you are using mods like "Status Hud Continued" client has to have the same config as the server to properly display the room icon.
+
+### Acknowledgments
+
+- Thanks to [@BiggBenn](https://github.com/BiggBenn) for updating the mod to 1.21.
