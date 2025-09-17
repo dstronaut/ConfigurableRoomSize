@@ -26,5 +26,20 @@ public class ConfigurableRoomSizeModSystem : ModSystem
     {
         harmony?.UnpatchAll("configurableroomsize");
     }
+    public override void StartClientSide(ICoreClientAPI api)
+    {
+        int valueFromServer = api.World.Config.GetInt("ServerSideValue", 0);
+        RoomSizeConfig.cfg.MaxRoomSize = api.World.Config.GetInt("configurableroomsize.MaxRoomSize", RoomSizeConfig.cfg.MaxRoomSize);
+        RoomSizeConfig.cfg.MaxCellarSize = api.World.Config.GetInt("configurableroomsize.MaxCellarSize", RoomSizeConfig.cfg.MaxCellarSize);
+        RoomSizeConfig.cfg.AltMaxCellarSize = api.World.Config.GetInt("configurableroomsize.AltMaxCellarSize", RoomSizeConfig.cfg.AltMaxCellarSize);
+        RoomSizeConfig.cfg.AltMaxCellarVolume = api.World.Config.GetInt("configurableroomsize.AltMaxCellarVolume", RoomSizeConfig.cfg.AltMaxCellarVolume);
+    }
 
+    public override void StartServerSide(ICoreServerAPI api)
+    {
+        api.World.Config.SetInt("configurableroomsize.MaxRoomSize", RoomSizeConfig.cfg.MaxRoomSize);
+        api.World.Config.SetInt("configurableroomsize.MaxCellarSize", RoomSizeConfig.cfg.MaxCellarSize);
+        api.World.Config.SetInt("configurableroomsize.AltMaxCellarSize", RoomSizeConfig.cfg.AltMaxCellarSize);
+        api.World.Config.SetInt("configurableroomsize.AltMaxCellarVolume", RoomSizeConfig.cfg.AltMaxCellarVolume);
+    }
 }
