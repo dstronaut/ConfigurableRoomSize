@@ -28,7 +28,7 @@ public class ConfigurableRoomSizeModSystem : ModSystem
     }
     public override void StartClientSide(ICoreClientAPI api)
     {
-        int valueFromServer = api.World.Config.GetInt("ServerSideValue", 0);
+        //int valueFromServer = api.World.Config.GetInt("ServerSideValue", 0);
         RoomSizeConfig.cfg.MaxRoomSize = api.World.Config.GetInt("configurableroomsize.MaxRoomSize", RoomSizeConfig.cfg.MaxRoomSize);
         RoomSizeConfig.cfg.MaxCellarSize = api.World.Config.GetInt("configurableroomsize.MaxCellarSize", RoomSizeConfig.cfg.MaxCellarSize);
         RoomSizeConfig.cfg.AltMaxCellarSize = api.World.Config.GetInt("configurableroomsize.AltMaxCellarSize", RoomSizeConfig.cfg.AltMaxCellarSize);
