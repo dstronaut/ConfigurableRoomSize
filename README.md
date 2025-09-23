@@ -4,9 +4,11 @@ This mod allows you to configure maximum room sizes in Vintage Story, so you can
 
 ![cover](cover.jpg "Cover Image")
 
-## How to use:
+## How to use
 
-After launching the game with the mod, just edit the `ConfigurableRoomSize.json` file in the ModConfig folder.
+Launch the game/server with the mod to generate config files. 
+Then edit `ConfigurableRoomSize.json` in ModConfig folder in respective client/server game files (server needs restarting). 
+When playing online config is synchronized with the server.
 
 ```[json]
 {
@@ -19,10 +21,10 @@ After launching the game with the mod, just edit the `ConfigurableRoomSize.json`
 
 That's all!
 
-### Note:
+### How to Contribute
 
-- If you are using mods like "Status Hud Continued" client has to have the same config as the server to properly display the room icon.
+Fork the project and make pull request with your changes.
 
 ### Acknowledgments
 
-- Thanks to [@BiggBenn](https://github.com/BiggBenn) for updating the mod to 1.21.
+- Thanks to [@BiggBenn](https://github.com/BiggBenn) for updating the mod to 1.21 and providing multiplayer sync.
