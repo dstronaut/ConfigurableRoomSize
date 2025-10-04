@@ -1,4 +1,5 @@
 using HarmonyLib;
+using System;
 using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -18,6 +19,8 @@ class Patch_FindRoomForPosition
     return false;        //  skip vanilla
   }
 
+    private static bool arraysPatched = false;
+
   // ----------- Replace the whole method -----------------
   private static Room CustomFindRoomForPosition(RoomRegistry self, BlockPos pos, ChunkRooms otherRooms)
   {
@@ -30,28 +33,52 @@ class Patch_FindRoomForPosition
     var bf_iteration = Traverse.Create(self).Field("iteration");
     var bf_api = Traverse.Create(self).Field("api");
 
+        // ----------- Custom configuration -----------
+
+    int MAXROOMSIZE = Math.Clamp(RoomSizeConfig.cfg.MaxRoomSize, 1, 1023);
+    int MAXCELLARSIZE = Math.Clamp(RoomSizeConfig.cfg.MaxCellarSize, 1, MAXROOMSIZE);
+    int ALTMAXCELLARSIZE = Math.Clamp(RoomSizeConfig.cfg.AltMaxCellarSize, 1, MAXROOMSIZE);
+    int ALTMAXCELLARVOLUME = RoomSizeConfig.cfg.AltMaxCellarVolume;
+
+    //adapt array size to maxroom size
+    int ARRAYSIZE = (MAXROOMSIZE * 2) + 1;
+    int ARRAYSIZE_SQUARED = ARRAYSIZE * ARRAYSIZE;
+    int ARRAYSIZE_CUBED = ARRAYSIZE * ARRAYSIZE * ARRAYSIZE;
+
+    //comment on ARRAYSIZE in VS original code: Note if this constant is increased beyond 32, the bitshifts for compressedPos in the bfsQueue.Enqueue() and .Dequeue() calls may need updating
+    //this is the update, instead of having 5 bits per direction (<32) we now have 10 bits (<1023).
+    //ARRAYSIZE seems to control which area is checked, rather than the max room size
+    //more than 10 bits seems impossible, as int is limited to 32 bits. 10, 20, 30. No more space.
+    int lshift1 = 20;
+    int lshift2 = lshift1 / 2;
+
+    //patch the currentVisited and skyLightXZChecked arrays to allow more data necessary to handle bigger rooms
     int[] currentVisited = (int[])bf_currentVisited.GetValue();
     int[] skyLightXZChecked = (int[])bf_skyLightXZChecked.GetValue();
+    if (!arraysPatched || (currentVisited.Length < ARRAYSIZE_CUBED && skyLightXZChecked.Length < ARRAYSIZE_SQUARED))
+    {
+        bf_currentVisited.SetValue(new int[ARRAYSIZE_CUBED]);
+        bf_skyLightXZChecked.SetValue(new int[ARRAYSIZE_SQUARED]);
+        arraysPatched = true;
+        currentVisited = (int[])bf_currentVisited.GetValue();
+        skyLightXZChecked = (int[])bf_skyLightXZChecked.GetValue();
+    }
+    
     int iteration = bf_iteration.GetValue<int>() + 1;
     bf_iteration.SetValue(iteration);
     ICoreAPI api = bf_api.GetValue<ICoreAPI>();
 
-    // ----------- Custom configuration -----------
-    int ARRAYSIZE = 29;
-    int MAXROOMSIZE = RoomSizeConfig.cfg.MaxRoomSize;
-    int MAXCELLARSIZE = RoomSizeConfig.cfg.MaxCellarSize;
-    int ALTMAXCELLARSIZE = RoomSizeConfig.cfg.AltMaxCellarSize;
-    int ALTMAXCELLARVOLUME = RoomSizeConfig.cfg.AltMaxCellarVolume;
+   
 
-        // ----------- Oiriginal method -----------
+        // ----------- Original method -----------
         QueueOfInt bfsQueue = new QueueOfInt();
 
-        int halfSize = (ARRAYSIZE - 1) / 2;
+        int halfSize = (ARRAYSIZE - 1) / 2; //side note, by default halfSize is conveniently equal to MAXROOMSIZE. 
         int maxSize = halfSize + halfSize;
-        bfsQueue.Enqueue(halfSize << 10 | halfSize << 5 | halfSize);
+        bfsQueue.Enqueue(halfSize << lshift1 | halfSize << lshift2 | halfSize); //shift adjusted
 
         int visitedIndex = (halfSize * ARRAYSIZE + halfSize) * ARRAYSIZE + halfSize; // Center node
-        //int iteration = ++this.iteration;
+        //int iteration = ++this.iteration; //not necessary, done before original method
         currentVisited[visitedIndex] = iteration;
 
         int coolingWallCount = 0;
@@ -69,16 +96,16 @@ class Patch_FindRoomForPosition
         int posX = pos.X - halfSize;
         int posY = pos.Y - halfSize;
         int posZ = pos.Z - halfSize;
-        BlockPos npos = new BlockPos();
+        BlockPos npos = new BlockPos();     //looks like it will be adjusted in the next version (1.21.2)
         BlockPos bpos = new BlockPos();
         int dx, dy, dz;
 
         while (bfsQueue.Count > 0)
         {
             int compressedPos = bfsQueue.Dequeue();
-            dx = compressedPos >> 10;
-            dy = (compressedPos >> 5) & 0x1f;
-            dz = compressedPos & 0x1f;
+            dx = compressedPos >> lshift1;
+            dy = (compressedPos >> lshift2) & 0x3ff;    //0x3ff = 10 bits = 1023 = 1111111111, was 0x3f before = 5 bits
+            dz = compressedPos & 0x3ff;
             npos.Set(posX + dx, posY + dy, posZ + dz);
             bpos.Set(npos);
 
@@ -184,7 +211,7 @@ class Patch_FindRoomForPosition
                     }
                 }
 
-                bfsQueue.Enqueue(dx << 10 | dy << 5 | dz);
+                bfsQueue.Enqueue(dx << lshift1 | dy << lshift2 | dz);   //shift adjusted
             }
         }
 
