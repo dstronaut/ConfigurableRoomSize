@@ -96,8 +96,8 @@ class Patch_FindRoomForPosition
         int posX = pos.X - halfSize;
         int posY = pos.Y - halfSize;
         int posZ = pos.Z - halfSize;
-        BlockPos npos = new BlockPos();     //looks like it will be adjusted in the next version (1.21.2)
-        BlockPos bpos = new BlockPos();
+        BlockPos npos = new BlockPos(pos.dimension);     //looks like it will be adjusted in the next version (1.21.2)
+        BlockPos bpos = new BlockPos(pos.dimension);
         int dx, dy, dz;
 
         while (bfsQueue.Count > 0)
